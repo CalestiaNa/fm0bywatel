@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>mObywatel</title>
+    <!-- Zewnętrzne ikony i fonty dla lepszego wyglądu -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #004381;
+            --bg-color: #f5f6f8;
+            --text-dark: #1e2022;
+            --text-light: #666;
+            --border-color: #e5e5e5;
+        }
+
+        body { 
+            margin: 0; 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-color); 
+            overflow-x: hidden; 
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- STYL FORMULARZA WPROWADZANIA DANYCH --- */
+        #form-container { 
+            padding: 20px; 
+            max-width: 400px; 
+            margin: 0 auto; 
+            background: white; 
+            min-height: 100vh; 
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        .form-title { text-align: center; color: var(--primary-blue); margin-bottom: 25px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 14px; color: var(--text-dark); }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .form-group input[type="file"] { padding: 8px; }
+        .btn-submit { 
+            background-color: var(--primary-blue); 
+            color: white; 
+            border: none; 
+            padding: 15px; 
+            width: 100%; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+        .btn-submit:active { background-color: #002d57; }
+        
+        /* --- STYL EKRANU APLIKACJI MOBYWATEL --- */
+        #app-container { 
+            display: none; 
+            background: var(--bg-color); 
+            min-height: 100vh; 
+            position: relative; 
+            padding-bottom: 80px; 
+            max-width: 450px;
+            margin: 0 auto;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+
+        /* Nagłówek */
+        .header { 
+            background-color: white; 
+            text-align: center; 
+            padding: 15px 20px; 
+            border-bottom: 1px solid var(--border-color); 
+            font-weight: 600; 
+            font-size: 18px; 
+            color: var(--text-dark); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .header .back { color: var(--primary-blue); font-size: 24px; cursor: pointer; text-decoration: none; }
+        
+        /* Czas i data aktualizacji */
+        .time-section { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 12px 20px; 
+            background: white; 
+            align-items: center; 
+            margin-bottom: 10px;
+        }
+        .time-section .time { font-size: 13px; color: #2196F3; font-weight: 600; display: flex; align-items: center;}
+        .time-section .time::before {
+            content: ''; display: block; width: 8px; height: 8px; background: #4CAF50; border-radius: 50%; margin-right: 6px; box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+        }
+        .time-section .date { font-size: 13px; color: var(--text-light); }
+        
+        /* Sekcja zdjęcia i hologramu */
+        .hologram-container { 
+            position: relative; 
+            padding: 25px; 
+            text-align: center; 
+            background: white;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .photo-frame { 
+            width: 140px; 
+            height: 185px; 
+            margin: 0 auto; 
+            border-radius: 12px; 
+            overflow: hidden; 
+            position: relative; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
+        }
+        .photo-frame img { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Efekt pulsującej flagi (symulacja hologramu) */
+        .pulsing-flag { 
+            width: 100%; 
+            height: 100%; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(220,20,60,0.3) 50%, rgba(255,255,255,0.1) 100%); 
+            mix-blend-mode: overlay; 
+            animation: pulse 3s infinite; 
+            pointer-events: none;
+        }
+        @keyframes pulse { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
+        
+        /* Dane użytkownika */
+        .user-details { 
+            background: white; 
+            padding: 0 20px; 
+            margin-top: 10px;
+        }
+        .name-row { 
+            display: flex; 
+            flex-direction: column; 
+            padding: 12px 0; 
+            border-bottom: 1px solid var(--border-color); 
+        }
+        .name-row:last-child { border-bottom: none; }
+        .name-row .label { color: var(--text-light); font-size: 12px; margin-bottom: 4px; }
+        .name-row .value { font-size: 16px; font-weight: 600; color: var(--text-dark); }
+        
+        /* Dolny pasek nawigacji */
+        .bottom-nav { 
+            position: fixed; 
+            bottom: 0; 
+            width: 100%; 
+            max-width: 450px;
+            background: #fff; 
+            display: flex; 
+            justify-content: space-around; 
+            padding: 12px 0 25px 0; /* Padding uwzględniający paski w iPhone */
+            border-top: 1px solid var(--border-color); 
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.03); 
+            z-index: 20;
+        }
+        .nav-item { text-align: center; font-size: 11px; color: var(--text-light); display: flex; flex-direction: column; align-items: center;}
+        .nav-item.active { color: var(--primary-blue); font-weight: 600; }
+        .nav-icon { font-size: 22px; margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. FORMULARZ -->
+    <div id="form-container">
+        <h2 class="form-title">Generator mDowód<br><span style="font-size: 14px; font-weight: 400; color: #666;">Wersja edukacyjna (Projekt Szkolny)</span></h2>
+        
+        <div class="form-group">
+            <label>Imię (imiona)</label>
+            <input type="text" id="input-imie" value="JAN MATEUSZ">
+        </div>
+        <div class="form-group">
+            <label>Nazwisko</label>
+            <input type="text" id="input-nazwisko" value="KOWALSKI">
+        </div>
+        <div class="form-group">
+            <label>Obywatelstwo</label>
+            <input type="text" id="input-obywatelstwo" value="POLSKIE">
+        </div>
+        <div class="form-group">
+            <label>Data urodzenia</label>
+            <input type="date" id="input-data" value="1995-05-15">
+        </div>
+        <div class="form-group">
+            <label>PESEL</label>
+            <input type="text" id="input-pesel" value="95051512345" maxlength="11">
+        </div>
+        <div class="form-group">
+            <label>Zdjęcie profilowe</label>
+            <input type="file" id="input-zdjecie" accept="image/*">
+        </div>
+        <button class="btn-submit" onclick="generateID()">Zaloguj i wyświetl dowód</button>
+    </div>
+
+    <!-- 2. APLIKACJA MOBYWATEL (UKRYTA DOMYŚLNIE) -->
+    <div id="app-container">
+        <div class="header">
+            <span class="back" onclick="location.reload()">❮</span>
+            <span>mDowód</span>
+            <span style="visibility: hidden;">❮</span>
+        </div>
+        
+        <div class="time-section">
+            <div class="time" id="live-time">Czas: 12:00:00</div>
+            <div class="date">Ostatnia aktualizacja: <span id="live-date">15.05.2024</span></div>
+        </div>
+        
+        <div class="hologram-container">
+            <div class="photo-frame">
+                <!-- Zdjęcie zastępcze wgrane przez system w razie braku uploadu -->
+                <img id="out-zdjecie" src="https://via.placeholder.com/150x200?text=Brak+zdj%C4%99cia" alt="Zdjęcie użytkownika">
+                <div class="pulsing-flag"></div>
+            </div>
+        </div>
+        
+        <div class="user-details">
+            <div class="name-row">
+                <div class="label">Imię (imiona)</div>
+                <div class="value" id="out-imie">JAN</div>
+            </div>
+            <div class="name-row">
+                <div class="label">Nazwisko</div>
+                <div class="value" id="out-nazwisko">KOWALSKI</div>
+            </div>
+            <div class="name-row">
+                <div class="label">Obywatelstwo</div>
+                <div class="value" id="out-obywatelstwo">POLSKIE</div>
+            </div>
+            <div class="name-row">
+                <div class="label">Data urodzenia</div>
+                <div class="value" id="out-data">15.05.1995</div>
+            </div>
+            <div class="name-row">
+                <div class="label">Numer PESEL</div>
+                <div class="value" id="out-pesel">95051512345</div>
+            </div>
+        </div>
+        
+        <div class="bottom-nav">
+            <div class="nav-item active"><span class="nav-icon">🏠</span>Start</div>
+            <div class="nav-item"><span class="nav-icon">🪪</span>Dokumenty</div>
+            <div class="nav-item"><span class="nav-icon">📑</span>Usługi</div>
+            <div class="nav-item"><span class="nav-icon">⚙️</span>Więcej</div>
+        </div>
+    </div>
+
+    <!-- SKRYPT LOGIKI -->
+    <script>
+        // Funkcja aktualizująca zegar w czasie rzeczywistym
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const dateString = now.toLocaleDateString('pl-PL');
+            document.getElementById('live-time').innerText = `Czas: ${timeString}`;
+            document.getElementById('live-date').innerText = dateString;
+        }
+        setInterval(updateClock, 1000);
+        updateClock(); // Pierwsze wywołanie bez czekania 1 sekundy
+
+        // Funkcja generująca dowód z formularza
+        function generateID() {
+            // Przenoszenie danych do sekcji mDowodu
+            document.getElementById('out-imie').innerText = document.getElementById('input-imie').value.toUpperCase() || 'BRAK DANYCH';
+            document.getElementById('out-nazwisko').innerText = document.getElementById('input-nazwisko').value.toUpperCase() || 'BRAK DANYCH';
+            document.getElementById('out-obywatelstwo').innerText = document.getElementById('input-obywatelstwo').value.toUpperCase() || 'POLSKIE';
+            document.getElementById('out-pesel').innerText = document.getElementById('input-pesel').value || '00000000000';
+            
+            // Formatowanie daty z RRRR-MM-DD na DD.MM.RRRR
+            const dateVal = document.getElementById('input-data').value;
+            if(dateVal) {
+                const parts = dateVal.split('-');
+                document.getElementById('out-data').innerText = `${parts[2]}.${parts[1]}.${parts[0]}`;
+            } else {
+                document.getElementById('out-data').innerText = 'Brak danych';
+            }
+            
+            // Obsługa przesyłanego zdjęcia (jeśli zostało wybrane)
+            const fileInput = document.getElementById('input-zdjecie');
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('out-zdjecie').src = e.target.result;
+                }
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+            
+            // Ukrycie formularza i wyświetlenie interfejsu aplikacji
+            document.getElementById('form-container').style.display = 'none';
+            document.getElementById('app-container').style.display = 'block';
+            
+            // Przewinięcie ekranu na samą górę, żeby przypominało to otwarcie apki
+            window.scrollTo(0, 0);
+        }
+    </script>
+</body>
+</html>
